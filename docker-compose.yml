@@ -1,0 +1,43 @@
+services:
+  api:
+    build:
+      context: ./food_truck_api
+      dockerfile: Dockerfile
+    container_name: api_c
+    volumes:
+      - ./food_truck_api:/app
+    ports:
+      - 0.0.0.0:4000:4000
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: food_truck_api_dev
+      PGHOST: db
+      PGPORT: 5432
+    depends_on:
+      - db
+    restart: on-failure
+    command:
+      - "./entrypoint.sh"
+  db:
+    image: postgres:13.4-alpine
+    container_name: db_c
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    restart: always
+    volumes:
+      - ./food_truck_api/_pgdata:/var/lib/postgresql/data
+  foodtruck:
+    build:
+      context: ./food_truck_frontend
+      dockerfile: Dockerfile
+    container_name: foodtruck_c
+    volumes:
+      - ./food_truck_frontend:/app
+      - /app/node_modules
+    ports:
+      - 0.0.0.0:8000:8000
+    stdin_open: true
+    tty: true
